@@ -105,5 +105,38 @@ namespace EFCoreRelationshipsTutorial.Controllers
             return character;
         }
 
+        [HttpPost("skills")]
+        public async Task<ActionResult<Character>> AddCharacterSkillMultiple(AddCharacterSkillMultipleDTO request)
+        {
+
+            var character = await _context.Characters
+                .Where(c => c.Id == request.CharacterId)
+                .Include(c => c.Skills)
+                .FirstOrDefaultAsync();
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            var skills = await _context.Skills
+                .Where(s => request.SkillIds.Contains(s.Id))
+                .ToListAsync();
+
+            if(skills != null)
+            {
+                character.Skills.Clear();
+
+                foreach (var skill in skills)
+                {
+                    character.Skills.Add(skill);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return character;
+        }
+
     }
 }
